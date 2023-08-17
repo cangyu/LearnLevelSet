@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     user.dt = 0.1e-9;
     user.n = 0;
     user.nMax = 0;
-    user.nOut = 10000;
+    user.nOut = 10;
 
     /* Parse options */
     cnt = 1;
@@ -225,8 +225,9 @@ int main(int argc, char *argv[])
 
     /* Update parameters */
     user.h = user.L / user.nCell;
+    user.dt = 0.5 * user.h / user.F;
     if (user.tMax < 0)
-        user.tMax = 10 * user.L / user.F;
+        user.tMax = user.L / user.F;
     if (user.nMax <= 0)
         user.nMax = static_cast<long>(std::ceil(user.tMax / user.dt));
     
@@ -280,7 +281,11 @@ int main(int argc, char *argv[])
     VAR_NAME.resize(nVar);
     VAR_NAME[cnt++] = "Velocity";
     VAR_NAME[cnt++] = "SignedDistance";
-    assert(cnt == nVar);
+    if (cnt != nVar)
+    {
+        std::cerr << "Unmatched variables!" << std::endl;
+        return 2;
+    }
 
     std::cout << "Apply I.C. ..." << std::endl;
     for (int idx = 0; idx < user.nNode; idx++)
@@ -295,7 +300,7 @@ int main(int argc, char *argv[])
     for (user.t = 0.0, user.n = 0; user.t < user.tMax && user.n < user.nMax; user.t+=user.dt, user.n++)
     {
         err = 0;
-        printf("n=%ld, dt=%gns, t=%gms:\n", user.n, user.dt*s2ns, user.t*s2ms);
+        printf("n=%ld, dt=%gms, t=%gms:\n", user.n, user.dt*s2ms, user.t*s2ms);
 
         /* Diagnose */
         check_range(val_cur, user);
